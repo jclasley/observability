@@ -25,14 +25,7 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 			ctx := NewFromContext(c.Request().Context(), WithZapLogger(logger))
 			now := time.Now()
 
-			req := c.Request()
-			c.SetRequest(req.WithContext(ctx))
-
-			// call other middlewares
-			err := next(c)
-
-			fields := []zap.Field{zap.String("method", c.Request().Method)}
-
+			fields := []zap.Field{}
 			if opts.RequestID {
 				id, err := uuid.NewUUID()
 				if err != nil {
@@ -42,10 +35,21 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 				}
 			}
 
+			ctx = WithFields(ctx, fields...)
+			req := c.Request()
+			c.SetRequest(req.WithContext(ctx))
+
+
+
+
 			if opts.Timestamp {
 				fields = append(fields, zap.Time("at", time.Now()))
 			}
-			fields = append(fields, zap.Int("status", c.Response().Status), zap.Duration("dur", time.Since(now)))
+
+			// call other middlewares
+			err := next(c)
+
+			fields = append(fields, zap.Int("status", c.Response().Status), zap.String("method", c.Request().Method), zap.Duration("dur", time.Since(now)))
 
 			if err != nil || c.Response().Status >= 400 {
 				Error(ctx, c.Path(), fields...)
