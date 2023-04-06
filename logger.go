@@ -13,6 +13,13 @@ func NewFromBackground(opts ...NewOptions) context.Context {
 	return ctx
 }
 
+func NewFromContext(ctx context.Context, opts ...NewOptions) context.Context {
+	for _, apply := range opts {
+		ctx = apply(ctx)
+	}
+	return ctx
+}
+
 type NewOptions func (context.Context) context.Context
 
 type zapLoggerKey struct{}
