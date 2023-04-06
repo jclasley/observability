@@ -16,7 +16,7 @@ func NewFromBackground(opts ...NewOptions) context.Context {
 type NewOptions func (context.Context) context.Context
 
 type zapLoggerKey struct{}
-var zapKey struct{}
+var zapKey zapLoggerKey
 
 // WithZapLogger is an option function to pass a logger
 // to the new context.
@@ -41,42 +41,21 @@ type fieldsKeyT struct{}
 var fieldsKey fieldsKeyT
 
 // Fields returns all the fields currently set on a given context.
-func Fields(ctx context.Context) map[string]string {
-	if fs, ok := ctx.Value(fieldsKey).(map[string]string); ok {
+func Fields(ctx context.Context) []zap.Field {
+	if fs, ok := ctx.Value(fieldsKey).([]zap.Field); ok {
 		return fs
 	}
-	return map[string]string{}
+	return []zap.Field{}
 }
 
 // WithFields assigns some fields to a context and returns the new context.
 // If the old context has fields already set, any duplicate keys found on the passed map[string]string
 // will overwrite the old field values.
-func WithFields(ctx context.Context, fields map[string]string) context.Context {
+func WithFields(ctx context.Context, fields ...zap.Field) context.Context {
 	fs := Fields(ctx)
-	for k, v := range fields {
-		fs[k] = v
+	for _, field := range fields {
+		fs = append(fs, field)
 	}
+
 	return context.WithValue(ctx, fieldsKey, fs)
-}
-
-func Log(ctx context.Context, msg string, fields ...map[string]string) {
-	l := ZapLogger(ctx)
-	fs := Fields(ctx)
-
-	ctxZapFields := convertToZapField(fs)
-	zapFields := make([]zap.Field, 0)
-	for _, v := range fields {
-		zapFields = append(zapFields, convertToZapField(v)...)
-	}
-	ctxZapFields = append(ctxZapFields, zapFields...)
-
-	l.Info(msg, ctxZapFields...)
-}
-
-func convertToZapField(m map[string]string) []zap.Field {
-	fs := make([]zap.Field, 0, len(m))
-	for k, v := range m {
-		fs = append(fs, zap.String(k, v))
-	}
-	return fs
 }

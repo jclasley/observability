@@ -18,10 +18,14 @@ func TestSameLogger(t *testing.T) {
 	require.Same(t, l, ctxL)
 }
 
-func TestFields(t *testing.T) {
-	ctx := WithFields(context.Background(), map[string]string{"some": "value", "goes": "here"})
-	ctx = WithFields(ctx, map[string]string{"more": "fields"})
-
-	require.Equal(t, Fields(ctx), map[string]string{"some": "value", "goes": "here", "more": "fields"})
+func TestNoLogger(t *testing.T) {
+	l := ZapLogger(context.Background())
+	require.NotNil(t, l)
 }
 
+func TestFields(t *testing.T) {
+	ctx := WithFields(context.Background(), zap.String("something", "here"), zap.Int("x", 1))
+	ctx = WithFields(ctx, zap.Bool("false", false))
+
+	require.Equal(t, Fields(ctx), []zap.Field{zap.String("something", "here"), zap.Int("x", 1), zap.Bool("false", false)})
+}
