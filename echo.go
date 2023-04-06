@@ -45,7 +45,7 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 			if opts.Timestamp {
 				fields = append(fields, zap.Time("at", time.Now()))
 			}
-			fields = append(fields, zap.String("method", c.Request().Method), zap.Int("status", c.Response().Status), zap.Duration("dur", time.Since(now)))
+			fields = append(fields, zap.Int("status", c.Response().Status), zap.Duration("dur", time.Since(now)))
 
 			if err != nil || c.Response().Status >= 400 {
 				Error(ctx, c.Path(), fields...)
