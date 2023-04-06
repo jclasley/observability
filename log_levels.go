@@ -31,3 +31,13 @@ func Debug(ctx context.Context, msg string, fields ...zap.Field) {
 	l := getLoggerAssignFields(ctx, fields...)
 	l.Debug(msg)
 }
+
+func Warn(ctx context.Context, msg string, fields ...zap.Field) {
+	l := getLoggerAssignFields(ctx, fields...)
+	l.Warn(msg)
+}
+
+func Error(ctx context.Context, msg string, fields ...zap.Field) {
+	l := getLoggerAssignFields(ctx, fields...)
+	l.Error(msg)
+}
