@@ -9,7 +9,7 @@ import (
 // getLoggerAssignFields takes a context and attempts to lookup the logger and fields,
 // then sets the fields on a new logger and returns that, ready for logging
 func getLoggerAssignFields(ctx context.Context, fields ...zap.Field) *zap.Logger {
-	l := ZapLogger(ctx)
+	l := GetZapLogger(ctx)
 
 	fs := Fields(ctx)
 	for _, field := range fields {

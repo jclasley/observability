@@ -13,13 +13,13 @@ func TestSameLogger(t *testing.T) {
 	require.NoError(t, err)
 
 	ctx := NewFromBackground(WithZapLogger(l))
-	ctxL := ZapLogger(ctx)
+	ctxL := GetZapLogger(ctx)
 
 	require.Same(t, l, ctxL)
 }
 
 func TestNoLogger(t *testing.T) {
-	l := ZapLogger(context.Background())
+	l := GetZapLogger(context.Background())
 	require.NotNil(t, l)
 }
 
