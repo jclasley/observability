@@ -2,6 +2,7 @@ package observability
 
 import (
 	"context"
+
 	"go.uber.org/zap"
 )
 
@@ -20,9 +21,10 @@ func NewFromContext(ctx context.Context, opts ...NewOptions) context.Context {
 	return ctx
 }
 
-type NewOptions func (context.Context) context.Context
+type NewOptions func(context.Context) context.Context
 
 type zapLoggerKey struct{}
+
 var zapKey zapLoggerKey
 
 // WithZapLogger is an option function to pass a logger
@@ -45,10 +47,11 @@ func ZapLogger(ctx context.Context) *zap.Logger {
 }
 
 type fieldsKeyT struct{}
+
 var fieldsKey fieldsKeyT
 
-// Fields returns all the fields currently set on a given context.
-func Fields(ctx context.Context) []zap.Field {
+// GetFields returns all the fields currently set on a given context.
+func GetFields(ctx context.Context) []zap.Field {
 	if fs, ok := ctx.Value(fieldsKey).([]zap.Field); ok {
 		return fs
 	}
@@ -59,7 +62,7 @@ func Fields(ctx context.Context) []zap.Field {
 // If the old context has fields already set, any duplicate keys found on the passed map[string]string
 // will overwrite the old field values.
 func WithFields(ctx context.Context, fields ...zap.Field) context.Context {
-	fs := Fields(ctx)
+	fs := GetFields(ctx)
 	for _, field := range fields {
 		fs = append(fs, field)
 	}

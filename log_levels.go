@@ -11,7 +11,7 @@ import (
 func getLoggerAssignFields(ctx context.Context, fields ...zap.Field) *zap.Logger {
 	l := ZapLogger(ctx)
 
-	fs := Fields(ctx)
+	fs := GetFields(ctx)
 	for _, field := range fields {
 		fs = append(fs, field)
 	}

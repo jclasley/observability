@@ -27,5 +27,5 @@ func TestFields(t *testing.T) {
 	ctx := WithFields(context.Background(), zap.String("something", "here"), zap.Int("x", 1))
 	ctx = WithFields(ctx, zap.Bool("false", false))
 
-	require.Equal(t, Fields(ctx), []zap.Field{zap.String("something", "here"), zap.Int("x", 1), zap.Bool("false", false)})
+	require.Equal(t, GetFields(ctx), []zap.Field{zap.String("something", "here"), zap.Int("x", 1), zap.Bool("false", false)})
 }

@@ -8,9 +8,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func Middlewares(logger *zap.Logger) []echo.MiddlewareFunc {
+func Middlewares(logger *zap.Logger, options ...LoggingOpts) []echo.MiddlewareFunc {
 	return []echo.MiddlewareFunc{
-		LoggingMiddleware(logger),
+		LoggingMiddleware(logger, options...),
 	}
 }
 
