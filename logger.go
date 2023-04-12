@@ -22,11 +22,15 @@ func NewFromBackground(opts ...NewOptions) (context.Context, teardownFunc) {
 }
 
 func NewFromContext(ctx context.Context, opts ...NewOptions) (context.Context, teardownFunc) {
+	ctx, cancel := context.WithCancel(ctx)
 	for _, apply := range opts {
 		ctx = apply(ctx)
 	}
 	// TODO: teardown any observability resources
-	return ctx, func() error { return nil }
+	return ctx, func() error {
+		cancel()
+		return nil
+	}
 }
 
 type teardownFunc func() error
