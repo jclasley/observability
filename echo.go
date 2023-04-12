@@ -8,9 +8,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func Middlewares(logger *zap.Logger) []echo.MiddlewareFunc {
+func Middlewares(logger *zap.Logger, options ...LoggingOpts) []echo.MiddlewareFunc {
 	return []echo.MiddlewareFunc{
-		LoggingMiddleware(logger),
+		LoggingMiddleware(logger, options...),
 	}
 }
 
@@ -31,16 +31,12 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 				if err != nil {
 					Warn(ctx, "failed to generate request id", zap.Error(err))
 				} else {
-					fields = append(fields, zap.String("req_id", id.String()))
+					ctx = WithFields(ctx, zap.String("req_id", id.String()))
 				}
 			}
 
-			ctx = WithFields(ctx, fields...)
 			req := c.Request()
 			c.SetRequest(req.WithContext(ctx))
-
-
-
 
 			if opts.Timestamp {
 				fields = append(fields, zap.Time("at", time.Now()))
@@ -66,7 +62,7 @@ type LoggingOptions struct {
 	RequestID bool
 }
 
-type LoggingOpts func (opts *LoggingOptions)
+type LoggingOpts func(opts *LoggingOptions)
 
 func WithTimestamp() LoggingOpts {
 	return func(opts *LoggingOptions) {
