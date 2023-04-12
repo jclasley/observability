@@ -6,20 +6,30 @@ import (
 	"go.uber.org/zap"
 )
 
-func NewFromBackground(opts ...NewOptions) context.Context {
-	ctx := context.Background()
+func NewFromBackground(opts ...NewOptions) (context.Context, teardownFunc) {
+	ctx, cancel := context.WithCancel(context.Background())
 	for _, apply := range opts {
 		ctx = apply(ctx)
 	}
-	return ctx
+
+	teardown := func() error {
+		// TODO: teardown any observability resources
+		cancel()
+		return nil
+	}
+
+	return ctx, teardown
 }
 
-func NewFromContext(ctx context.Context, opts ...NewOptions) context.Context {
+func NewFromContext(ctx context.Context, opts ...NewOptions) (context.Context, teardownFunc) {
 	for _, apply := range opts {
 		ctx = apply(ctx)
 	}
-	return ctx
+	// TODO: teardown any observability resources
+	return ctx, func() error { return nil }
 }
+
+type teardownFunc func() error
 
 type NewOptions func(context.Context) context.Context
 
