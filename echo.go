@@ -1,6 +1,7 @@
 package observability
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -44,12 +45,15 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 				fields = append(fields, zap.Time("at", time.Now()))
 			}
 
+			rw := newWriter(c.Response())
+			c.Response().Writer = rw
+
 			// call other middlewares
 			err := next(c)
 
-			fields = append(fields, zap.Int("status", c.Response().Status), zap.String("method", c.Request().Method), zap.Duration("dur", time.Since(now)))
+			fields = append(fields, zap.Int("status", rw.code), zap.String("method", c.Request().Method), zap.Duration("dur", time.Since(now)))
 
-			if err != nil || c.Response().Status >= 400 {
+			if err != nil || rw.code >= 400 {
 				Error(ctx, c.Path(), fields...)
 			} else {
 				Info(ctx, c.Path(), fields...)
@@ -57,6 +61,28 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 			return err
 		}
 	}
+}
+
+type responseWriter struct {
+	code int
+	rw   *echo.Response
+}
+
+func newWriter(rw *echo.Response) *responseWriter {
+	return &responseWriter{rw: rw}
+}
+
+func (w *responseWriter) Header() http.Header {
+	return w.rw.Header()
+}
+
+func (w *responseWriter) Write(b []byte) (int, error) {
+	return w.rw.Write(b)
+}
+
+func (w *responseWriter) WriteHeader(code int) {
+	w.code = code
+	w.rw.WriteHeader(code)
 }
 
 type LoggingOptions struct {
