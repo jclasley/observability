@@ -12,7 +12,9 @@ func TestSameLogger(t *testing.T) {
 	l, err := zap.NewDevelopment()
 	require.NoError(t, err)
 
-	ctx := NewFromBackground(WithZapLogger(l))
+	ctx, teardown := NewFromBackground(WithZapLogger(l))
+	defer teardown()
+
 	ctxL := ZapLogger(ctx)
 
 	require.Same(t, l, ctxL)

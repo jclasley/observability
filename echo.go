@@ -22,7 +22,9 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			ctx := NewFromContext(c.Request().Context(), WithZapLogger(logger))
+			ctx, teardown := NewFromContext(c.Request().Context(), WithZapLogger(logger))
+			defer teardown()
+
 			now := time.Now()
 
 			fields := []zap.Field{}
