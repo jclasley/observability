@@ -65,11 +65,11 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 
 type responseWriter struct {
 	code int
-	rw   *echo.Response
+	rw   echo.Response
 }
 
 func newWriter(rw *echo.Response) *responseWriter {
-	return &responseWriter{rw: rw}
+	return &responseWriter{rw: *rw}
 }
 
 func (w *responseWriter) Header() http.Header {
