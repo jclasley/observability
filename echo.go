@@ -1,6 +1,7 @@
 package observability
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -9,13 +10,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func Middlewares(logger *zap.Logger, options ...LoggingOpts) []echo.MiddlewareFunc {
+func Middlewares(ctx context.Context, logger *zap.Logger, options ...LoggingOpts) []echo.MiddlewareFunc {
 	return []echo.MiddlewareFunc{
-		LoggingMiddleware(logger, options...),
+		LoggingMiddleware(ctx, logger, options...),
 	}
 }
 
-func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.MiddlewareFunc {
+func LoggingMiddleware(ctx context.Context, logger *zap.Logger, options ...LoggingOpts) echo.MiddlewareFunc {
 	var opts LoggingOptions
 	for _, apply := range options {
 		apply(&opts)
@@ -23,7 +24,7 @@ func LoggingMiddleware(logger *zap.Logger, options ...LoggingOpts) echo.Middlewa
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			ctx, teardown := NewFromContext(c.Request().Context(), WithZapLogger(logger))
+			ctx, teardown := NewFromContext(ctx, WithZapLogger(logger))
 			defer teardown()
 
 			now := time.Now()
