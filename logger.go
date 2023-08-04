@@ -2,40 +2,14 @@ package observability
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/trace"
 
 	"go.uber.org/zap"
 )
 
-func NewFromBackground(opts ...NewOptions) (context.Context, teardownFunc) {
-	ctx, cancel := context.WithCancel(context.Background())
-	for _, apply := range opts {
-		ctx = apply(ctx)
-	}
+type TeardownFunc func() error
 
-	teardown := func() error {
-		// TODO: teardown any observability resources
-		cancel()
-		return nil
-	}
-
-	return ctx, teardown
-}
-
-func NewFromContext(ctx context.Context, opts ...NewOptions) (context.Context, teardownFunc) {
-	ctx, cancel := context.WithCancel(ctx)
-	for _, apply := range opts {
-		ctx = apply(ctx)
-	}
-	// TODO: teardown any observability resources
-	return ctx, func() error {
-		cancel()
-		return nil
-	}
-}
-
-type teardownFunc func() error
-
-type NewOptions func(context.Context) context.Context
+type NewOptions func(context.Context) (context.Context, TeardownFunc)
 
 type zapLoggerKey struct{}
 
@@ -44,8 +18,8 @@ var zapKey zapLoggerKey
 // WithZapLogger is an option function to pass a logger
 // to the new context.
 func WithZapLogger(l *zap.Logger) NewOptions {
-	return func(ctx context.Context) context.Context {
-		return context.WithValue(ctx, zapKey, l)
+	return func(ctx context.Context) (context.Context, TeardownFunc) {
+		return context.WithValue(ctx, zapKey, l), nil
 	}
 }
 
@@ -58,6 +32,32 @@ func ZapLogger(ctx context.Context) *zap.Logger {
 		return l
 	}
 	return zap.NewNop()
+}
+
+type tracerKeyT struct{}
+
+var traceKey tracerKeyT
+
+func WithTracing(svcName string, dev bool) NewOptions {
+	return func(ctx context.Context) (context.Context, TeardownFunc) {
+		// TODO
+		if !dev {
+			return ctx, nil
+		}
+		tracer, teardown := newDevTracer(ctx, svcName)
+		ctx = context.WithValue(ctx, traceKey, tracer)
+		return ctx, func() error {
+			return teardown(ctx)
+		}
+	}
+}
+
+func tracer(ctx context.Context) trace.Tracer {
+	t, ok := ctx.Value(traceKey).(trace.Tracer)
+	if !ok {
+		return nil
+	}
+	return t
 }
 
 type fieldsKeyT struct{}
