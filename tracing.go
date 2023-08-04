@@ -18,7 +18,7 @@ func newDevTracer(ctx context.Context, svcName string) (trace.Tracer, teardown) 
 		resource.Default(),
 		resource.NewWithAttributes(
 			semconv.SchemaURL,
-			semconv.ServiceName("ExampleService"),
+			semconv.ServiceName(svcName),
 		),
 	)
 	if err != nil {
