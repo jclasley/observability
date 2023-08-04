@@ -19,8 +19,10 @@ func NewFromBackground(opts ...NewOptions) (context.Context, TeardownFunc) {
 
 		var err error
 		for _, td := range teardowns {
-			innerErr := td()
-			err = errors.Join(err, innerErr)
+			if td != nil {
+				innerErr := td()
+				err = errors.Join(err, innerErr)
+			}
 		}
 		return err
 	}
@@ -43,8 +45,10 @@ func NewFromContext(ctx context.Context, opts ...NewOptions) (context.Context, T
 
 		var err error
 		for _, td := range teardowns {
-			innerErr := td()
-			err = errors.Join(err, innerErr)
+			if td != nil {
+				innerErr := td()
+				err = errors.Join(err, innerErr)
+			}
 		}
 		return err
 	}
