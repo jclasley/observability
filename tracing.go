@@ -17,7 +17,7 @@ func newDevTracer(ctx context.Context, svcName string) (trace.Tracer, teardown) 
 	r, err := resource.Merge(
 		resource.Default(),
 		resource.NewWithAttributes(
-			semconv.SchemaURL,
+			resource.Default().SchemaURL(),
 			semconv.ServiceName(svcName),
 		),
 	)
