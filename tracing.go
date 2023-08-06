@@ -36,13 +36,13 @@ func newDevTracer(ctx context.Context, svcName string) (trace.Tracer, teardown) 
 	return tracer, tp.Shutdown
 }
 
-type attributes map[string]string
+type Attributes map[string]string
 
 type spanKeyT struct{}
 
 var spanKey spanKeyT
 
-func StartSpan(ctx context.Context, name string, attrs ...attributes) (context.Context, func(...trace.SpanEndOption)) {
+func StartSpan(ctx context.Context, name string, attrs ...Attributes) (context.Context, func(...trace.SpanEndOption)) {
 	t := tracer(ctx)
 	if t == nil {
 		return ctx, func(_ ...trace.SpanEndOption) {}
@@ -55,7 +55,7 @@ func StartSpan(ctx context.Context, name string, attrs ...attributes) (context.C
 	return ctx, span.End
 }
 
-func mapToKeyValue(attrs ...attributes) []attribute.KeyValue {
+func mapToKeyValue(attrs ...Attributes) []attribute.KeyValue {
 	concatAttr := make(map[string]string)
 	for _, m := range attrs {
 		for k, v := range m {
@@ -82,7 +82,7 @@ type attrKeyT struct{}
 
 var attrKey attrKeyT
 
-func WithAttributes(ctx context.Context, attrs ...attributes) context.Context {
+func WithAttributes(ctx context.Context, attrs ...Attributes) context.Context {
 	ctxAttrs := ctxAttributes(ctx)
 	attrs = append(ctxAttrs, attrs...)
 
@@ -96,8 +96,8 @@ func WithAttributes(ctx context.Context, attrs ...attributes) context.Context {
 	return ctx
 }
 
-func ctxAttributes(ctx context.Context) []attributes {
-	a, ok := ctx.Value(attrKey).([]attributes)
+func ctxAttributes(ctx context.Context) []Attributes {
+	a, ok := ctx.Value(attrKey).([]Attributes)
 	if !ok {
 		return nil
 	}
